@@ -592,7 +592,7 @@ CONTRACT CLOSED.`,
     }
 
     function saveData() {
-      localStorage.setItem('cyberleek_data_v1', JSON.stringify(leaks));
+      localStorage.setItem('cognito-bit_data_v1', JSON.stringify(leaks));
       updateCounters();
     }
 
@@ -621,7 +621,7 @@ CONTRACT CLOSED.`,
     function toggleGMMode() {
     if (!isGMMode) {
     let password = prompt("INGRESA LA CLAVE DE ACCESO DE GM:");
-    if (password === "cont") {
+    if (password === "cont") {// Cambia "cont" por tu contraseña
       isGMMode = true;
       const gmBar = document.getElementById('gm-bar');
       const gmBtn = document.getElementById('gm-toggle-btn');
