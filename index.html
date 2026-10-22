@@ -575,52 +575,67 @@ CONTRACT CLOSED.`,
       document.getElementById('current-year').textContent = new Date().getFullYear();
     };
 
-    // --- CONFIGURACIÓN DE GITHUB API ---
+
+// --- CONFIGURACIÓN DE GITHUB API ---
 const GITHUB_CONFIG = {
-  owner: "tomyameryt21bv-rgb", // Tu usuario
-  repo: "cognito-bit",         // Tu repositorio
-  branch: "main",              // Rama principal
-  path: "index.html",          // Archivo objetivo
-  token: localStorage.getItem('cyberleek_pat') || "" // Se cargará desde la memoria local de tu navegador
+  owner: "tomyameryt21bv-rgb",
+  repo: "cognito-bit",
+  branch: "main",
+  path: "leaks.json", // <-- ¡Ahora apunta al archivo JSON y no al HTML!
+  token: localStorage.getItem('cyberleek_pat') || ""
 };
+
+// --- CARGAR DATOS ---
+async function loadData() {
+  try {
+    // Carga directa del JSON (los jugadores lo leen al instante sin tokens)
+    const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${GITHUB_CONFIG.branch}/${GITHUB_CONFIG.path}?t=` + Date.now());
+    if (!response.ok) throw new Error("No se pudo cargar el archivo remoto");
+    
+    leaks = await response.json();
+  } catch (e) {
+    console.warn("Usando datos locales de respaldo:", e);
+    const saved = localStorage.getItem('cognito-bit_data_v1');
+    leaks = saved ? JSON.parse(saved) : [...DEFAULT_LEAKS];
+  }
+  updateCounters();
+  if (typeof renderLeaks === 'function') renderLeaks();
+}
+
+// --- GUARDAR DATOS EN GITHUB ---
 async function saveData() {
-  // Guarda copia local por seguridad
   localStorage.setItem('cognito-bit_data_v1', JSON.stringify(leaks));
   updateCounters();
 
-  // Si no tenemos el token en memoria, lo pedimos en pantalla
   if (!GITHUB_CONFIG.token) {
-    const userToken = prompt("Para publicar en vivo para los jugadores, ingresa tu GitHub Access Token (PAT):");
+    const userToken = prompt("Ingresa tu GitHub Access Token (PAT) para publicar en vivo:");
     if (userToken) {
       GITHUB_CONFIG.token = userToken;
-      localStorage.setItem('cyberleek_pat', userToken); // Se guarda en tu computador
+      localStorage.setItem('cyberleek_pat', userToken);
     } else {
-      if (typeof showToast === 'function') {
-        showToast("Cambio guardado solo en tu computador (sin token).", "fa-triangle-exclamation");
-      }
+      if (typeof showToast === 'function') showToast("Guardado solo de forma local.", "fa-triangle-exclamation");
       return;
     }
   }
 
   if (typeof showToast === 'function') {
-    showToast("Sincronizando cambios con GitHub...", "fa-spinner");
+    showToast("Sincronizando con GitHub...", "fa-spinner");
   }
 
   try {
     const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
     
-    // Obtener SHA
+    // Obtener SHA actual del archivo leaks.json
     const getRes = await fetch(url, {
       headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
     });
     const fileData = await getRes.json();
     const sha = fileData.sha;
 
-    // Codificar contenido
-    const updatedData = JSON.stringify(leaks, null, 2);
-    const contentEncoded = btoa(unescape(encodeURIComponent(updatedData)));
+    // Codificar contenido a Base64
+    const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(leaks, null, 2))));
 
-    // Enviar a GitHub
+    // Enviar cambios
     const putRes = await fetch(url, {
       method: 'PUT',
       headers: {
@@ -628,7 +643,7 @@ async function saveData() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        message: "Actualización de datos desde Modo GM",
+        message: "Actualización de filtraciones desde Modo GM",
         content: contentEncoded,
         sha: sha,
         branch: GITHUB_CONFIG.branch
@@ -636,21 +651,15 @@ async function saveData() {
     });
 
     if (putRes.ok) {
-      if (typeof showToast === 'function') {
-        showToast("¡Cambios publicados para todos los jugadores!", "fa-check-circle");
-      }
+      if (typeof showToast === 'function') showToast("¡Cambios publicados para los jugadores!", "fa-check-circle");
     } else {
-      throw new Error("Respuesta inválida de GitHub API");
+      throw new Error("Error en la respuesta de la API");
     }
   } catch (err) {
-    console.error("Error al guardar en GitHub:", err);
-    if (typeof showToast === 'function') {
-      showToast("Error al sincronizar. Guarda tu token o revisa tu conexión.", "fa-triangle-exclamation");
-    }
+    console.error("Error al guardar:", err);
+    if (typeof showToast === 'function') showToast("Error al sincronizar con GitHub.", "fa-triangle-exclamation");
   }
 }
-
-
     function updateCounters() {
       document.getElementById('total-leaks-counter').textContent = leaks.length;
       
