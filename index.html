@@ -619,24 +619,34 @@ CONTRACT CLOSED.`,
 
     // --- MODO GAME MASTER / GM MODE TOGGLE ---
     function toggleGMMode() {
-      isGMMode = !isGMMode;
+    if (!isGMMode) {
+    let password = prompt("INGRESA LA CLAVE DE ACCESO DE GM:");
+    if (password === "tupassword123") { // Cambia "tupassword123" por tu contraseña
+      isGMMode = true;
       const gmBar = document.getElementById('gm-bar');
       const gmBtn = document.getElementById('gm-toggle-btn');
       const gmBtnText = document.getElementById('gm-btn-text');
-
-      if (isGMMode) {
-        gmBar.classList.remove('hidden');
-        gmBtn.classList.remove('bg-gray-900', 'border-gray-700', 'text-gray-400');
-        gmBtn.classList.add('bg-cyber-purple/20', 'border-cyber-purple', 'text-cyber-purple');
-        gmBtnText.textContent = "MODO GM ACTIVADO";
-        showToast("Modo Game Master activado. Ahora puedes editar contenido directamente.", "fa-user-shield");
-      } else {
-        gmBar.classList.add('hidden');
-        gmBtn.classList.remove('bg-cyber-purple/20', 'border-cyber-purple', 'text-cyber-purple');
-        gmBtn.classList.add('bg-gray-900', 'border-gray-700', 'text-gray-400');
-        gmBtnText.textContent = "ACTIVAR MODO GM / EDITAR";
-        showToast("Modo Game Master desactivado.", "fa-lock");
-      }
+      gmBar.classList.remove('hidden');
+      gmBtn.classList.remove('bg-gray-900', 'border-gray-700', 'text-gray-400');
+      gmBtn.classList.add('bg-cyber-purple/20', 'border-cyber-purple', 'text-cyber-purple');
+      gmBtnText.textContent = "MODO GM ACTIVADO";
+      showToast("Modo Game Master activado. Ahora puedes editar contenido directamente.", "fa-user-shield");
+      renderLeaks();
+    } else if (password !== null) {
+      alert("ACCESO DENEGADO: Clave incorrecta.");
+    }
+  } else {
+    isGMMode = false;
+    const gmBar = document.getElementById('gm-bar');
+    const gmBtn = document.getElementById('gm-toggle-btn');
+    const gmBtnText = document.getElementById('gm-btn-text');
+    gmBar.classList.add('hidden');
+    gmBtn.classList.remove('bg-cyber-purple/20', 'border-cyber-purple', 'text-cyber-purple');
+    gmBtn.classList.add('bg-gray-900', 'border-gray-700', 'text-gray-400');
+    gmBtnText.textContent = "ACTIVAR MODO GM / EDITAR";
+    showToast("Modo Game Master desactivado.", "fa-lock");
+    renderLeaks();
+  }
 
       renderLeaks(); // Re-render para mostrar/ocultar botones de edición
     }
@@ -993,4 +1003,3 @@ CONTRACT CLOSED.`,
   </script>
 </body>
 </html>
-```
